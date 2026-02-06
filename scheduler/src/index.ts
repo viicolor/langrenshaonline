@@ -50,10 +50,12 @@ class GameScheduler {
     console.log(`[${now.toISOString()}] 开始检查超时游戏...`)
 
     try {
+      // 查询超时的游戏记录（通过 current_phase 判断是否在进行中）
+      // 游戏进行中的条件：current_phase 不是 'finished'
       const { data: timeoutRecords, error } = await this.supabase
         .from('game_records')
         .select('id, room_id, current_phase, current_round, night_step, phase_ends_at, day_speech_state, sheriff_seat, sheriff_state, voting_pk_state')
-        .eq('status', 'playing')
+        .neq('current_phase', 'finished')
         .lt('phase_ends_at', nowIso)
 
       if (error) {
