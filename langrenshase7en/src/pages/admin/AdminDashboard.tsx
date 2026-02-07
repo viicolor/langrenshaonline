@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -295,39 +295,39 @@ const AdminDashboard = () => {
 
   return (
     <LayoutDashboard>
-      <LayoutDashboardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Shield className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="font-display text-2xl font-bold">后台管理</h1>
-              <p className="text-muted-foreground text-sm">狼人杀游戏管理系统</p>
-            </div>
+      <LayoutDashboardHeader className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-primary" />
+          <div>
+            <h1 className="font-display text-2xl font-bold text-left">后台管理</h1>
+            <p className="text-muted-foreground text-sm text-left">狼人杀游戏管理系统</p>
           </div>
+        </div>
+        <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={handleNavigateToGame}>
             返回游戏
           </Button>
         </div>
       </LayoutDashboardHeader>
 
-      <LayoutDashboardMain>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <LayoutDashboardMain className="p-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
           {stats.map((stat, index) => (
             <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     {stat.icon}
                     <div>
-                      <p className="text-2xl font-bold">{stat.value}</p>
-                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-xl font-bold">{stat.value}</p>
+                      <p className="text-xs text-muted-foreground">{stat.title}</p>
                     </div>
                   </div>
                   {stat.trend === 'up' && (
-                    <div className="text-green-500 text-sm">↑</div>
+                    <div className="text-green-500 text-xs">↑</div>
                   )}
                   {stat.trend === 'down' && (
-                    <div className="text-red-500 text-sm">↓</div>
+                    <div className="text-red-500 text-xs">↓</div>
                   )}
                 </div>
               </CardContent>
@@ -337,106 +337,70 @@ const AdminDashboard = () => {
 
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader>
-            <CardTitle className="font-display">快速导航</CardTitle>
+            <CardTitle className="font-display text-left">快速导航</CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant={activeTab === 'boards' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('boards')}
-              >
-                <Database className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">板子管理</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              <Button variant={activeTab === 'boards' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('boards')}>
+                <Database className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">板子管理</div>
                   <div className="text-xs text-muted-foreground">配置游戏板子</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'cards' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('cards')}
-              >
-                <FileText className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">牌库管理</div>
+              <Button variant={activeTab === 'cards' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('cards')}>
+                <FileText className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">牌库管理</div>
                   <div className="text-xs text-muted-foreground">管理角色卡牌</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'skills' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('skills')}
-              >
-                <BarChart3 className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">技能管理</div>
+              <Button variant={activeTab === 'skills' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('skills')}>
+                <BarChart3 className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">技能管理</div>
                   <div className="text-xs text-muted-foreground">配置游戏技能</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'configs' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('configs')}
-              >
-                <Sliders className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">全局配置</div>
+              <Button variant={activeTab === 'configs' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('configs')}>
+                <Sliders className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">全局配置</div>
                   <div className="text-xs text-muted-foreground">配置游戏规则</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'processes' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('processes')}
-              >
-                <Sliders className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">流程配置</div>
+              <Button variant={activeTab === 'processes' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('processes')}>
+                <Sliders className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">流程配置</div>
                   <div className="text-xs text-muted-foreground">配置游戏流程</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'flow-nodes' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('flow-nodes')}
-              >
-                <GitBranch className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">流程节点</div>
+              <Button variant={activeTab === 'flow-nodes' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('flow-nodes')}>
+                <GitBranch className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">流程节点</div>
                   <div className="text-xs text-muted-foreground">管理流程节点</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'board-flows' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('board-flows')}
-              >
-                <Layout className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">板子流程</div>
+              <Button variant={activeTab === 'board-flows' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('board-flows')}>
+                <Layout className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">板子流程</div>
                   <div className="text-xs text-muted-foreground">配置板子流程</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'ai' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('ai')}
-              >
-                <Bot className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">AI玩家管理</div>
+              <Button variant={activeTab === 'ai' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('ai')}>
+                <Bot className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">AI玩家管理</div>
                   <div className="text-xs text-muted-foreground">配置AI玩家</div>
                 </div>
               </Button>
-              <Button
-                variant={activeTab === 'logs' ? 'default' : 'outline'}
-                className="justify-start h-24"
-                onClick={() => setActiveTab('logs')}
-              >
-                <ScrollText className="w-5 h-5 mr-3" />
-                <div className="text-left">
-                  <div className="font-semibold">配置日志</div>
+              <Button variant={activeTab === 'logs' ? 'default' : 'outline'} size="sm" className="h-16 flex items-center justify-start p-3" onClick={() => setActiveTab('logs')}>
+                <ScrollText className="w-5 h-5 mr-2 text-primary" />
+                <div>
+                  <div className="font-semibold text-sm">配置日志</div>
                   <div className="text-xs text-muted-foreground">查看配置变更记录</div>
                 </div>
               </Button>

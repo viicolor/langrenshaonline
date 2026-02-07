@@ -51,9 +51,13 @@ const BoardFlowConfig = ({ board }: BoardFlowConfigProps) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/boards');
-      const data = await response.json();
-      setBoards(data.boards || []);
+      // 模拟数据：由于API服务器未实现，使用模拟数据
+      const mockBoards: Board[] = [
+        { id: '1', name: '10人速推局', player_count: 10, description: '适合新手的快速狼人杀局' },
+        { id: '2', name: '12人标准局', player_count: 12, description: '标准配置的狼人杀局' },
+        { id: '3', name: '12人狼王守卫', player_count: 12, description: '包含狼王和守卫的进阶局' },
+      ];
+      setBoards(mockBoards);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -68,9 +72,18 @@ const BoardFlowConfig = ({ board }: BoardFlowConfigProps) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch('/api/flow-nodes');
-      const data = await response.json();
-      setFlowNodes(data.nodes || []);
+      // 模拟数据：由于API服务器未实现，使用模拟数据
+      const mockNodes: FlowNode[] = [
+        { id: '1', node_name: '守卫睁眼', node_code: 'guard_wake', node_type: 'night_phase', timeout_seconds: 30 },
+        { id: '2', node_name: '狼人刀人', node_code: 'werewolf_kill', node_type: 'night_phase', timeout_seconds: 60 },
+        { id: '3', node_name: '预言家查验', node_code: 'seer_check', node_type: 'night_phase', timeout_seconds: 30 },
+        { id: '4', node_name: '女巫用药', node_code: 'witch_heal', node_type: 'night_phase', timeout_seconds: 45 },
+        { id: '5', node_name: '猎人确认', node_code: 'hunter_confirm', node_type: 'night_phase', timeout_seconds: 20 },
+        { id: '6', node_name: '警长竞选', node_code: 'sheriff_campaign', node_type: 'day_phase', timeout_seconds: 120 },
+        { id: '7', node_name: '发言阶段', node_code: 'day_speech', node_type: 'day_phase', timeout_seconds: 300 },
+        { id: '8', node_name: '投票阶段', node_code: 'day_vote', node_type: 'day_phase', timeout_seconds: 60 },
+      ];
+      setFlowNodes(mockNodes);
       setIsLoading(false);
     } catch (error) {
       setIsLoading(false);
@@ -85,11 +98,20 @@ const BoardFlowConfig = ({ board }: BoardFlowConfigProps) => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await fetch(`/api/boards/${boardId}/flows`);
-      const data = await response.json();
-      setBoardFlows(data.flows || []);
+      // 模拟数据：由于API服务器未实现，使用模拟数据
+      const mockFlows: BoardFlowMapping[] = [
+        { id: '1', board_id: boardId, flow_node_id: '1', execution_order: 1, is_active: 1 },
+        { id: '2', board_id: boardId, flow_node_id: '2', execution_order: 2, is_active: 1 },
+        { id: '3', board_id: boardId, flow_node_id: '3', execution_order: 3, is_active: 1 },
+        { id: '4', board_id: boardId, flow_node_id: '4', execution_order: 4, is_active: 1 },
+        { id: '5', board_id: boardId, flow_node_id: '5', execution_order: 5, is_active: 1 },
+        { id: '6', board_id: boardId, flow_node_id: '6', execution_order: 6, is_active: 1 },
+        { id: '7', board_id: boardId, flow_node_id: '7', execution_order: 7, is_active: 1 },
+        { id: '8', board_id: boardId, flow_node_id: '8', execution_order: 8, is_active: 1 },
+      ];
+      setBoardFlows(mockFlows);
 
-      const usedNodeIds = data.flows?.map((f: BoardFlowMapping) => f.flow_node_id) || [];
+      const usedNodeIds = mockFlows.map(f => f.flow_node_id);
       const available = flowNodes.filter(node => !usedNodeIds.includes(node.id));
       setAvailableNodes(available);
       setIsLoading(false);
