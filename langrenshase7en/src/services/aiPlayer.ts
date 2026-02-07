@@ -434,7 +434,7 @@ const aiPlayerService = {
 
   async getAIPlayerConfig(roomId: string, playerId: string): Promise<string | null> {
     try {
-      const { data: player } = await supabase
+      const { data: player, error } = await supabase
         .from('room_players')
         .select('ai_config_id')
         .eq('room_id', roomId)
@@ -467,7 +467,7 @@ const aiPlayerService = {
 
   async getAIPlayerName(roomId: string, playerId: string): Promise<string> {
     try {
-      const { data: player } = await supabase
+      const { data: player, error } = await supabase
         .from('room_players')
         .select('player_name')
         .eq('room_id', roomId)
@@ -484,7 +484,7 @@ const aiPlayerService = {
 
   async getAIPlayerAvatar(roomId: string, playerId: string): Promise<string> {
     try {
-      const { data: player } = await supabase
+      const { data: player, error } = await supabase
         .from('room_players')
         .select('player_avatar')
         .eq('room_id', roomId)

@@ -26,8 +26,11 @@ export class AIGameIntegration {
       const aiPlayers = await aiPlayerService.getAIPlayers(roomId);
       
       if (aiPlayers.length === 0) {
+        console.log('没有AI玩家需要生成夜晚行为');
         return;
       }
+
+      console.log(`准备为 ${aiPlayers.length} 个AI玩家生成夜晚行为`);
 
       // 获取游戏状态
       const gameState = await this.getGameState(roomId, gameRecordId, round);
@@ -35,7 +38,15 @@ export class AIGameIntegration {
       // 为每个AI玩家生成夜晚行为
       for (const aiPlayer of aiPlayers) {
         if (aiPlayer.is_alive) {
+          // 检查AI玩家是否已入座
+          if (!aiPlayer.seat_number) {
+            console.warn(`AI玩家 ${aiPlayer.player_name} 未入座，跳过夜晚行为生成`);
+            continue;
+          }
+
           try {
+            console.log(`为AI玩家 ${aiPlayer.player_name} (座位: ${aiPlayer.seat_number}) 生成夜晚行为`);
+            
             // 使用LLM生成AI行为
             const action = await aiPlayerService.decideActionWithLLM(
               roomId,
@@ -54,29 +65,37 @@ export class AIGameIntegration {
                 action,
                 round
               );
+              console.log(`AI玩家 ${aiPlayer.player_name} 成功生成夜晚行为: ${action.content}`);
             }
           } catch (error) {
             console.error(`生成AI玩家 ${aiPlayer.player_name} 夜晚行为错误:`, error);
             // 使用备用方法生成行为
-            const fallbackAction = await aiPlayerService.decideAction(
-              roomId,
-              aiPlayer.user_id,
-              'night',
-              round,
-              gameState,
-              null
-            );
-            
-            if (fallbackAction.type === 'night_action' && fallbackAction.content) {
-              await this.processAINightAction(
+            try {
+              const fallbackAction = await aiPlayerService.decideAction(
                 roomId,
-                gameRecordId,
-                aiPlayer,
-                fallbackAction,
-                round
+                aiPlayer.user_id,
+                'night',
+                round,
+                gameState,
+                null
               );
+              
+              if (fallbackAction.type === 'night_action' && fallbackAction.content) {
+                await this.processAINightAction(
+                  roomId,
+                  gameRecordId,
+                  aiPlayer,
+                  fallbackAction,
+                  round
+                );
+                console.log(`AI玩家 ${aiPlayer.player_name} 使用备用方法生成夜晚行为: ${fallbackAction.content}`);
+              }
+            } catch (fallbackError) {
+              console.error(`备用方法生成AI玩家 ${aiPlayer.player_name} 夜晚行为也失败:`, fallbackError);
             }
           }
+        } else {
+          console.log(`AI玩家 ${aiPlayer.player_name} 已死亡，跳过夜晚行为生成`);
         }
       }
     } catch (error) {
@@ -100,8 +119,11 @@ export class AIGameIntegration {
       const aiPlayers = await aiPlayerService.getAIPlayers(roomId);
       
       if (aiPlayers.length === 0) {
+        console.log('没有AI玩家需要生成白天发言');
         return;
       }
+
+      console.log(`准备为 ${aiPlayers.length} 个AI玩家生成白天发言`);
 
       // 获取游戏状态
       const gameState = await this.getGameState(roomId, gameRecordId, round);
@@ -109,7 +131,15 @@ export class AIGameIntegration {
       // 为每个AI玩家生成白天发言
       for (const aiPlayer of aiPlayers) {
         if (aiPlayer.is_alive) {
+          // 检查AI玩家是否已入座
+          if (!aiPlayer.seat_number) {
+            console.warn(`AI玩家 ${aiPlayer.player_name} 未入座，跳过白天发言生成`);
+            continue;
+          }
+
           try {
+            console.log(`为AI玩家 ${aiPlayer.player_name} (座位: ${aiPlayer.seat_number}) 生成白天发言`);
+            
             // 使用LLM生成AI行为
             const action = await aiPlayerService.decideActionWithLLM(
               roomId,
@@ -128,29 +158,37 @@ export class AIGameIntegration {
                 action.content,
                 round
               );
+              console.log(`AI玩家 ${aiPlayer.player_name} 成功生成白天发言`);
             }
           } catch (error) {
             console.error(`生成AI玩家 ${aiPlayer.player_name} 白天发言错误:`, error);
             // 使用备用方法生成发言
-            const fallbackAction = await aiPlayerService.decideAction(
-              roomId,
-              aiPlayer.user_id,
-              'day',
-              round,
-              gameState,
-              null
-            );
-            
-            if (fallbackAction.type === 'speak' && fallbackAction.content) {
-              await this.processAISpeech(
+            try {
+              const fallbackAction = await aiPlayerService.decideAction(
                 roomId,
-                gameRecordId,
-                aiPlayer,
-                fallbackAction.content,
-                round
+                aiPlayer.user_id,
+                'day',
+                round,
+                gameState,
+                null
               );
+              
+              if (fallbackAction.type === 'speak' && fallbackAction.content) {
+                await this.processAISpeech(
+                  roomId,
+                  gameRecordId,
+                  aiPlayer,
+                  fallbackAction.content,
+                  round
+                );
+                console.log(`AI玩家 ${aiPlayer.player_name} 使用备用方法生成白天发言`);
+              }
+            } catch (fallbackError) {
+              console.error(`备用方法生成AI玩家 ${aiPlayer.player_name} 白天发言也失败:`, fallbackError);
             }
           }
+        } else {
+          console.log(`AI玩家 ${aiPlayer.player_name} 已死亡，跳过白天发言生成`);
         }
       }
     } catch (error) {
@@ -174,8 +212,11 @@ export class AIGameIntegration {
       const aiPlayers = await aiPlayerService.getAIPlayers(roomId);
       
       if (aiPlayers.length === 0) {
+        console.log('没有AI玩家需要生成投票');
         return;
       }
+
+      console.log(`准备为 ${aiPlayers.length} 个AI玩家生成投票`);
 
       // 获取游戏状态
       const gameState = await this.getGameState(roomId, gameRecordId, round);
@@ -183,7 +224,15 @@ export class AIGameIntegration {
       // 为每个AI玩家生成投票
       for (const aiPlayer of aiPlayers) {
         if (aiPlayer.is_alive) {
+          // 检查AI玩家是否已入座
+          if (!aiPlayer.seat_number) {
+            console.warn(`AI玩家 ${aiPlayer.player_name} 未入座，跳过投票生成`);
+            continue;
+          }
+
           try {
+            console.log(`为AI玩家 ${aiPlayer.player_name} (座位: ${aiPlayer.seat_number}) 生成投票`);
+            
             // 使用LLM生成AI行为
             const action = await aiPlayerService.decideActionWithLLM(
               roomId,
@@ -202,29 +251,37 @@ export class AIGameIntegration {
                 action.targetId,
                 round
               );
+              console.log(`AI玩家 ${aiPlayer.player_name} 成功生成投票`);
             }
           } catch (error) {
             console.error(`生成AI玩家 ${aiPlayer.player_name} 投票错误:`, error);
             // 使用备用方法生成投票
-            const fallbackAction = await aiPlayerService.decideAction(
-              roomId,
-              aiPlayer.user_id,
-              'voting',
-              round,
-              gameState,
-              null
-            );
-            
-            if (fallbackAction.type === 'vote' && fallbackAction.targetId) {
-              await this.processAIVote(
+            try {
+              const fallbackAction = await aiPlayerService.decideAction(
                 roomId,
-                gameRecordId,
-                aiPlayer,
-                fallbackAction.targetId,
-                round
+                aiPlayer.user_id,
+                'voting',
+                round,
+                gameState,
+                null
               );
+              
+              if (fallbackAction.type === 'vote' && fallbackAction.targetId) {
+                await this.processAIVote(
+                  roomId,
+                  gameRecordId,
+                  aiPlayer,
+                  fallbackAction.targetId,
+                  round
+                );
+                console.log(`AI玩家 ${aiPlayer.player_name} 使用备用方法生成投票`);
+              }
+            } catch (fallbackError) {
+              console.error(`备用方法生成AI玩家 ${aiPlayer.player_name} 投票也失败:`, fallbackError);
             }
           }
+        } else {
+          console.log(`AI玩家 ${aiPlayer.player_name} 已死亡，跳过投票生成`);
         }
       }
     } catch (error) {

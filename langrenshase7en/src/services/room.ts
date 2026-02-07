@@ -665,7 +665,7 @@ export const roomService = {
       }
 
       const existingPlayers = await this.getRoomPlayers(roomId);
-      const usedSeats = existingPlayers.data?.map(p => p.seat_number) || [];
+      const usedSeats = existingPlayers.map(p => p.seat_number).filter((seat): seat is number => seat !== null && seat !== undefined);
       const maxPlayers = room.max_players || 12;
       const availableSeats = Array.from({ length: maxPlayers }, (_, i) => i + 1).filter(seat => !usedSeats.includes(seat));
 
@@ -679,10 +679,10 @@ export const roomService = {
 
       const playerData: TablesInsert<'room_players'> = {
         room_id: roomId,
-        user_id: `ai-${crypto.randomUUID()}`,
+        user_id: null,
         player_name: aiName,
         player_avatar: avatarUrl,
-        seat_number,
+        seat_number: seatNumber,
         is_host: false,
         is_ai: true,
         ai_config_id: aiConfigId || null,
@@ -767,7 +767,7 @@ export const roomService = {
       }
 
       const existingPlayers = await this.getRoomPlayers(roomId);
-      const usedSeats = existingPlayers.data?.map(p => p.seat_number) || [];
+      const usedSeats = existingPlayers.map(p => p.seat_number).filter((seat): seat is number => seat !== null && seat !== undefined);
       const maxPlayers = room.max_players || 12;
       const availableSeats = Array.from({ length: maxPlayers }, (_, i) => i + 1).filter(seat => !usedSeats.includes(seat));
 
@@ -783,12 +783,13 @@ export const roomService = {
 
         const playerData: TablesInsert<'room_players'> = {
           room_id: roomId,
-          user_id: `ai-${crypto.randomUUID()}`,
+          user_id: null,
           player_name: aiName,
           player_avatar: avatarUrl,
-          seat_number,
+          seat_number: seatNumber,
           is_host: false,
           is_ai: true,
+          ai_config_id: null,
           is_ready: true,
           is_alive: true,
         };

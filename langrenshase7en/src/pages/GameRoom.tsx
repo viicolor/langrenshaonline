@@ -303,6 +303,7 @@ const GameRoom = () => {
     onSuccess: () => {
       toast.success('添加AI玩家成功');
       queryClient.invalidateQueries({ queryKey: ['room', roomId] });
+      queryClient.invalidateQueries({ queryKey: ['roomPlayers', roomId] });
     },
     onError: (error) => {
       toast.error('添加AI玩家失败', {
@@ -514,13 +515,16 @@ const GameRoom = () => {
     id: rp.user_id || rp.id,
     name: rp.seat_number != null ? `${rp.seat_number}号玩家` : rp.player_name,
     avatar: rp.player_avatar || `https://api.dicebear.com/7.x/adventurer/svg?seed=${rp.player_name}`,
-    seatNumber: rp.seat_number || 0,
+    seatNumber: rp.seat_number != null ? rp.seat_number : 0,
     isReady: rp.is_ready,
     isHost: rp.is_host,
     role: rp.role as RoleType | undefined,
     isAlive: deathAnnouncedForRound ? (rp.is_alive !== false) : true,
     isSpectator: false,
   }));
+  
+  // 过滤掉座位号为0的玩家，只显示有有效座位号的玩家
+  const filteredSeatedPlayers = players.filter(p => p.seatNumber > 0);
 
   const emptySeats = (room?.max_players || 12) - seatedCount;
   const maxAIPlayersToAdd = Math.max(0, emptySeats);
@@ -1420,15 +1424,15 @@ const GameRoom = () => {
 
           <div className="flex-1 min-h-0 flex items-center justify-center container mx-auto px-4 pb-28 pt-4 relative z-10">
             <RoundTable
-              players={players}
-              currentPlayerId={currentPlayer?.user_id || currentPlayer?.id}
-              gamePhase={room?.status === 'playing' ? gamePhase : 'waiting'}
-              onSeatClick={handleSeatClick}
-              selectedSeat={selectedSeat}
-              canInteract={(room == null || room?.status === 'waiting' || room?.status == null) && !isSpectatorFromFull}
-              maxSeats={room?.max_players ?? 12}
-              sheriffSeat={(gameRecord as { sheriff_seat?: number | null })?.sheriff_seat ?? null}
-            />
+        players={filteredSeatedPlayers}
+        currentPlayerId={currentPlayer?.user_id || currentPlayer?.id}
+        gamePhase={room?.status === 'playing' ? gamePhase : 'waiting'}
+        onSeatClick={handleSeatClick}
+        selectedSeat={selectedSeat}
+        canInteract={(room == null || room?.status === 'waiting' || room?.status == null) && !isSpectatorFromFull}
+        maxSeats={room?.max_players ?? 12}
+        sheriffSeat={(gameRecord as { sheriff_seat?: number | null })?.sheriff_seat ?? null}
+      />
           </div>
 
         </div>
