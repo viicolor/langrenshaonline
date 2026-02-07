@@ -108,12 +108,18 @@ const CardForm = ({ card, mode, onSave, onCancel }: CardFormProps) => {
       return;
     }
 
+    // 处理技能ID，将"none"转换为空字符串
+    const submitData = {
+      ...formData,
+      skill_id: formData.skill_id === 'none' ? '' : formData.skill_id,
+    };
+
     if (mode === 'create') {
-      createCardMutation.mutate(formData);
+      createCardMutation.mutate(submitData);
     } else if (mode === 'edit' && card) {
       updateCardMutation.mutate({
         cardId: card.id,
-        updates: formData,
+        updates: submitData,
       });
     }
   };
@@ -237,7 +243,7 @@ const CardForm = ({ card, mode, onSave, onCancel }: CardFormProps) => {
             <div className="space-y-2">
               <Label htmlFor="skill_id">关联技能</Label>
               <Select
-                value={formData.skill_id}
+                value={formData.skill_id || 'none'}
                 onValueChange={value => setFormData({ ...formData, skill_id: value })}
               >
                 <SelectTrigger>
@@ -246,11 +252,11 @@ const CardForm = ({ card, mode, onSave, onCancel }: CardFormProps) => {
                       {skills?.find(s => s.id === formData.skill_id)?.skill_name || '选择技能'}
                     </SelectValue>
                   ) : (
-                    <SelectValue>选择技能</SelectValue>
+                    <SelectValue>无技能</SelectValue>
                   )}
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">无技能</SelectItem>
+                  <SelectItem value="none">无技能</SelectItem>
                   {skills?.map(skill => (
                     <SelectItem key={skill.id} value={skill.id}>
                       {skill.skill_name}
