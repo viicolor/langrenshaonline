@@ -27,9 +27,30 @@
   - 解决方案: 添加安全检查和默认值
   - 文件: `src/components/game/SpectatorRecord.tsx`
 
+### 核心功能
+- **AI玩家集成**: 实现完整的AI玩家功能
+  - **新增文件**:
+    - `src/services/LLMService.ts`: 统一LLM API客户端，支持OpenAI、通义千问和MCP
+    - `src/services/AIPromptManager.ts`: 全面的AI提示管理系统，包含角色特定的提示模板
+    - `src/services/AIGameIntegration.ts`: AI游戏集成服务，生成AI玩家行为
+    - `src/services/AIService.ts`: 增强AI服务，添加LLM集成和记忆系统
+    - `src/services/aiPlayer.ts`: 修复AI玩家配置方法，添加LLM行为生成
+    - `src/services/gameEngine.ts`: 集成AI行为生成到游戏引擎
+    - `supabase/migrations/20250207000000_add_ai_config_id_to_room_players.sql`: 数据库迁移脚本
+  - **功能特性**:
+    - 支持所有游戏阶段的AI行为生成（夜晚、白天、投票）
+    - 实现LLM服务管理和 fallback 机制
+    - 增强的AI玩家记忆系统，跟踪游戏历史
+    - 错误处理与重试机制，确保系统稳定性
+  - **技术实现**:
+    - 服务导向架构，模块化设计
+    - 上下文感知的提示生成系统
+    - 异步编程，非阻塞游戏流程
+
 ### 技术改进
 - **版本控制**: 实现 Git 分支管理
   - 创建开发分支 `dev-feature`
+  - 创建开发分支 `dev-ai-integration` 用于AI功能开发
   - 合并到 `main` 分支保持稳定版本
   - 记录重要修改和决策
 
