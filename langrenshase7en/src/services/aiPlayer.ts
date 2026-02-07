@@ -1,6 +1,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import type { Tables, TablesInsert } from '@/integrations/supabase/types';
 import type { AIConfig } from './admin';
+import { aiService } from './AIService';
+import { LLMConfig } from './LLMService';
+import { AIContext, AIAction as NewAIAction } from '@/types/ai';
 
 export interface AIAction {
   type: 'speak' | 'vote' | 'night_action' | 'day_action';
@@ -531,7 +534,7 @@ const aiPlayerService = {
 
   async getPlayerNameById(roomId: string, playerId: string): Promise<string> {
     try {
-      const { data: player } = await supabase
+      const { data: player, error } = await supabase
         .from('room_players')
         .select('player_name')
         .eq('room_id', roomId)
@@ -543,6 +546,144 @@ const aiPlayerService = {
     } catch (error) {
       console.error('Get player name error:', error);
       return '未知玩家';
+    }
+  },
+
+  // 使用LLM服务生成AI行为
+  async decideActionWithLLM(
+    roomId: string,
+    playerId: string,
+    phase: string,
+    roundNumber: number,
+    gameState: any
+  ): Promise<AIAction> {
+    try {
+      // 获取AI玩家信息
+      const aiConfigId = await this.getAIPlayerConfig(roomId, playerId);
+      const aiConfig = await this.getAIConfig(aiConfigId);
+      const playerName = await this.getAIPlayerName(roomId, playerId);
+      const role = await this.getAIPlayerRole(roomId, playerId);
+      const alivePlayers = await this.getAlivePlayers(roomId);
+
+      // 构建LLM配置
+      if (aiConfig) {
+        const llmConfig: LLMConfig = {
+          provider: aiConfig.provider as 'openai' | 'qwen' | 'mcp',
+          apiKey: aiConfig.api_key || '',
+          model: aiConfig.model || '',
+          endpoint: aiConfig.endpoint || undefined,
+          temperature: 0.7,
+          maxTokens: 1000,
+        };
+        
+        // 设置AI玩家的LLM配置
+        aiService.setPlayerLLMConfig(playerId, llmConfig);
+      }
+
+      // 构建AI上下文
+      const context: AIContext = {
+        currentPhase: phase,
+        currentRound: roundNumber,
+        players: alivePlayers.map(p => ({
+          id: p.user_id,
+          name: p.player_name,
+          avatar: p.player_avatar || '',
+          seatNumber: p.seat_number,
+          isAlive: p.is_alive,
+          role: p.role as any,
+          isHost: p.is_host,
+          isReady: p.is_ready,
+          isSpectator: false,
+        })),
+        votes: [],
+        nightActions: [],
+        messages: [],
+        deaths: [],
+      };
+
+      // 创建AI玩家实例（如果不存在）
+      const aiPlayer = {
+        id: playerId,
+        name: playerName,
+        avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${playerName}`,
+        seatNumber: 0,
+        isAlive: true,
+        role: role as any,
+        isHost: false,
+        isReady: true,
+        isSpectator: false,
+        personality: 'calm', // 默认性格
+        provider: 'openai', // 默认提供商
+        isAI: true,
+        aggressiveness: 0.5,
+        deceptionLevel: 0.5,
+        cooperationLevel: 0.5,
+        speakingStyle: 'calm',
+        memory: [],
+        lastActionTime: 0,
+        actionCooldown: 3000,
+      };
+
+      // 调用LLM服务生成行为
+      const llmAction = await aiService.decideActionWithLLM(playerId, context);
+
+      // 转换为当前的AIAction格式
+      if (llmAction.type === 'chat') {
+        return {
+          type: 'speak',
+          content: llmAction.message,
+          timestamp: new Date().toISOString(),
+          phase,
+          roundNumber,
+        };
+      } else if (llmAction.type === 'vote') {
+        return {
+          type: 'vote',
+          content: 'vote',
+          targetId: llmAction.targetId,
+          timestamp: new Date().toISOString(),
+          phase,
+          roundNumber,
+        };
+      } else if (llmAction.type === 'skill') {
+        return {
+          type: 'night_action',
+          content: 'skill',
+          targetId: llmAction.targetId,
+          timestamp: new Date().toISOString(),
+          phase,
+          roundNumber,
+        };
+      } else {
+        // 默认行为
+        return await this.decideAction(roomId, playerId, phase, roundNumber, gameState, aiConfig);
+      }
+    } catch (error) {
+      console.error('LLM action error:', error);
+      // 出错时使用备用策略
+      const aiConfigId = await this.getAIPlayerConfig(roomId, playerId);
+      const aiConfig = await this.getAIConfig(aiConfigId);
+      return await this.decideAction(roomId, playerId, phase, roundNumber, gameState, aiConfig);
+    }
+  },
+
+
+
+  // 获取AI玩家角色
+  async getAIPlayerRole(roomId: string, playerId: string): Promise<string> {
+    try {
+      const { data: player, error } = await supabase
+        .from('room_players')
+        .select('role')
+        .eq('room_id', roomId)
+        .eq('user_id', playerId)
+        .single();
+
+      if (error) throw error;
+      return player?.role || 'villager';
+    } catch (error) {
+      console.error('Get AI player role error:', error);
+      return 'villager';
     }
   },
 };

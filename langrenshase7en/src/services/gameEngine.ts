@@ -5,6 +5,7 @@ import type { GameConfig } from './gameConfig';
 import { gameService as gameRecordService } from './game';
 import { WinConditionChecker } from './WinConditionChecker';
 import { NightActionResolver } from './NightActionResolver';
+import { aiGameIntegration } from './AIGameIntegration';
 import type { GameState, Player, NightAction } from '@/types/gameState';
 
 export type GamePhase = 'waiting' | 'night' | 'day' | 'voting' | 'finished';
@@ -221,6 +222,10 @@ export const gameService = {
         },
         undefined
       );
+
+      // 生成AI玩家的夜晚行为
+      await aiGameIntegration.generateAINightActions(roomId, gameRecordId, round);
+
       return { success: true, durationSeconds };
     } catch (error) {
       console.error('Start night phase error:', error);
@@ -637,6 +642,10 @@ export const gameService = {
         current_round: round,
         phase_started_at: now.toISOString(),
       });
+
+      // 生成AI玩家的白天发言
+      await aiGameIntegration.generateAIDaySpeeches(roomId, gameRecordId, round);
+
       return { success: true, durationSeconds };
     } catch (error) {
       console.error('Start day phase error:', error);
@@ -669,6 +678,10 @@ export const gameService = {
         phase_started_at: now.toISOString(),
         phase_ends_at: phaseEndsAt,
       });
+
+      // 生成AI玩家的投票
+      await aiGameIntegration.generateAIVotes(roomId, gameRecordId, round);
+
       return { success: true, durationSeconds };
     } catch (error) {
       console.error('Start voting phase error:', error);

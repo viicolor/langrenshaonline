@@ -1,10 +1,14 @@
 import { AIPlayer, AIProvider, AIPersonality, AIContext, AIAction, AIMemory, AIResponse, AIPromptTemplate, RoleType } from '@/types/ai';
 import { Player } from '@/types/game';
+import { llmService, LLMConfig } from './LLMService';
+import { aiPromptManager } from './AIPromptManager';
 
 export class AIService {
   private aiPlayers: Map<string, AIPlayer> = new Map();
   private actionQueue: Map<string, AIAction[]> = new Map();
   private processingActions = new Set<string>();
+  private llmConfigs: Map<string, LLMConfig> = new Map(); // 每个AI玩家的LLM配置
+  private defaultLLMConfig: LLMConfig | null = null;
 
   createAIPlayer(config: {
     id: string;
@@ -388,4 +392,124 @@ export class AIService {
   getAIPlayerCount(): number {
     return this.aiPlayers.size;
   }
+
+  // 设置默认LLM配置
+  setDefaultLLMConfig(config: LLMConfig): void {
+    this.defaultLLMConfig = config;
+    llmService.setDefaultConfig(config);
+  }
+
+  // 设置单个AI玩家的LLM配置
+  setPlayerLLMConfig(playerId: string, config: LLMConfig): void {
+    this.llmConfigs.set(playerId, config);
+  }
+
+  // 获取AI玩家的LLM配置
+  getPlayerLLMConfig(playerId: string): LLMConfig | null {
+    return this.llmConfigs.get(playerId) || this.defaultLLMConfig;
+  }
+
+  // 清理LLM配置
+  clearLLMConfigs(): void {
+    this.llmConfigs.clear();
+    this.defaultLLMConfig = null;
+    llmService.clearServices();
+  }
+
+  // 增强的decideAction方法，使用LLM
+  async decideActionWithLLM(playerId: string, context: AIContext): Promise<AIAction> {
+    const player = this.aiPlayers.get(playerId);
+    if (!player) {
+      throw new Error(`AI player ${playerId} not found`);
+    }
+
+    const now = Date.now();
+    if (now - player.lastActionTime < player.actionCooldown) {
+      throw new Error('Action cooldown not ready');
+    }
+
+    if (this.processingActions.has(playerId)) {
+      throw new Error('Already processing action');
+    }
+
+    this.processingActions.add(playerId);
+
+    try {
+      const llmConfig = this.getPlayerLLMConfig(playerId);
+      
+      // 生成详细的提示
+      const prompt = aiPromptManager.buildFullPrompt(player, context);
+      
+      // 调用LLM服务生成AI响应
+      let aiResponse: AIResponse;
+      
+      if (llmConfig) {
+        try {
+          aiResponse = await llmService.generateAIAction(player, context, llmConfig);
+        } catch (error) {
+          console.error('LLM generation error, using fallback:', error);
+          aiResponse = this.getFallbackAction(player, context);
+        }
+      } else {
+        // 如果没有LLM配置，使用备用策略
+        aiResponse = this.getFallbackAction(player, context);
+      }
+      
+      // 确保响应包含必要的字段
+      const action = aiResponse.action || {
+        type: 'chat',
+        message: '我需要更多信息',
+        priority: 1,
+        timestamp: now,
+      };
+      
+      // 更新玩家记忆
+      player.lastActionTime = now;
+      this.updateMemory(playerId, {
+        type: action.type === 'vote' ? 'vote' : action.type === 'skill' ? 'skill' : 'chat',
+        timestamp: now,
+        data: action,
+      });
+
+      return action;
+    } finally {
+      this.processingActions.delete(playerId);
+    }
+  }
+
+  // 生成聊天消息（使用LLM）
+  async generateChatMessageWithLLM(playerId: string, context: AIContext, topic?: string): Promise<string> {
+    const player = this.aiPlayers.get(playerId);
+    if (!player) {
+      throw new Error(`AI player ${playerId} not found`);
+    }
+
+    const llmConfig = this.getPlayerLLMConfig(playerId);
+    
+    if (llmConfig) {
+      try {
+        const prompt = aiPromptManager.generateChatPrompt(player, context, topic);
+        return await llmService.generateChatMessage(player, context, topic, llmConfig);
+      } catch (error) {
+        console.error('LLM chat generation error, using fallback:', error);
+        return this.generateChatMessage(player, context);
+      }
+    } else {
+      return this.generateChatMessage(player, context);
+    }
+  }
+
+  // 备用行为生成方法
+  private getFallbackAction(player: AIPlayer, context: AIContext): AIResponse {
+    const action = this.generateAction(player, context);
+    return {
+      action,
+      message: action.type === 'chat' ? action.message : undefined,
+      reasoning: '使用备用策略',
+      confidence: 0.3,
+    };
+  }
 }
+
+// 导出单例实例
+export const aiService = new AIService();
