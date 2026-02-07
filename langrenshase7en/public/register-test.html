@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册测试用户</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 28px;
+    }
+    .info {
+      background: #e3f2fd;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .info h3 {
+      margin: 0 0 10px 0;
+      color: #3b82f6;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+      background: #f9f9f9;
+    }
+    input:focus {
+      border-color: #667eea;
+      outline: none;
+      background: white;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      margin-top: 20px;
+      width: 100%;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 6px;
+      display: none;
+      font-size: 16px;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+    }
+    .info-box {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #bee5eb;
+    }
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 注册测试用户</h1>
+    
+    <div class="info">
+      <h3>📋 用户信息</h3>
+      <p><strong>用户名：</strong>viicolor</p>
+      <p><strong>密码：</strong>123456</p>
+      <p><strong>邮箱：</strong>viicolor@test.com</p>
+    </div>
+    
+    <div class="form-group">
+      <label for="username">用户名（只读）：</label>
+      <input type="text" id="username" value="viicolor" readonly>
+    </div>
+    
+    <div class="form-group">
+      <label for="password">密码（只读）：</label>
+      <input type="text" id="password" value="123456" readonly>
+    </div>
+    
+    <div class="form-group">
+      <label for="email">邮箱（只读）：</label>
+      <input type="text" id="email" value="viicolor@test.com" readonly>
+    </div>
+    
+    <button id="registerBtn" onclick="registerUser()">
+      <span id="btnText">🚀 点击注册用户</span>
+    </button>
+    
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://ioquklhxeisulnagkauo.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_HK_oRlUyVk61zsUH42gkTw_8XnRrByV';
+
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    async function registerUser() {
+      const username = 'viicolor';
+      const password = '123456';
+      const email = 'viicolor@test.com';
+      
+      const resultDiv = document.getElementById('result');
+      const registerBtn = document.getElementById('registerBtn');
+      const btnText = document.getElementById('btnText');
+      
+      resultDiv.style.display = 'none';
+      registerBtn.disabled = true;
+      btnText.innerHTML = '<span class="loading"></span> 注册中...';
+      
+      try {
+        showResult('info-box', '🔍 检查用户名...');
+        
+        const checkUrl = `${SUPABASE_URL}/rest/v1/users?username=eq.${encodeURIComponent(username)}&select=id`;
+        const checkResponse = await fetch(checkUrl, {
+          headers: {
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        const checkData = await checkResponse.json();
+        
+        if (checkData && checkData.length > 0) {
+          showResult('error', '❌ 用户名已存在！');
+          registerBtn.disabled = false;
+          btnText.textContent = '🚀 点击注册用户';
+          return;
+        }
+        
+        showResult('info-box', '🔐 加密密码...');
+        const passwordHash = await hashPassword(password);
+        
+        showResult('info-box', '📝 创建用户...');
+        
+        const registerUrl = `${SUPABASE_URL}/rest/v1/users`;
+        const userData = {
+          username,
+          password_hash: passwordHash,
+          email,
+          avatar_url: `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`,
+        };
+        
+        const registerResponse = await fetch(registerUrl, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation',
+          },
+          body: JSON.stringify(userData),
+        });
+        
+        const result = await registerResponse.json();
+        
+        if (result.error) {
+          showResult('error', `❌ 注册失败：${result.error.message || '未知错误'}`);
+          console.error('注册失败:', result.error);
+        } else {
+          showResult('success', `✅ 注册成功！<br><br>📋 用户信息：<br>• 用户ID：${result.id}<br>• 用户名：${result.username}<br>• 邮箱：${result.email}<br>• 头像：${result.avatar_url}<br>• 创建时间：${result.created_at}`);
+          console.log('注册成功:', result);
+        }
+        
+      } catch (error) {
+        console.error('注册错误:', error);
+        showResult('error', `❌ 注册出错：${error.message}`);
+      } finally {
+        registerBtn.disabled = false;
+        btnText.textContent = '🚀 点击注册用户';
+      }
+    }
+    
+    function showResult(type, message) {
+      const resultDiv = document.getElementById('result');
+      resultDiv.className = type;
+      resultDiv.innerHTML = message;
+      resultDiv.style.display = 'block';
+    }
+    
+    console.log('✅ 页面已加载，准备注册');
+    console.log('🔗 Supabase URL:', SUPABASE_URL);
+    console.log('👤 用户名: viicolor');
+    console.log('🔑 密码: 123456');
+  </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>狼人杀 - 登录/注册</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+      font-size: 28px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 40px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .tabs {
+      display: flex;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #eee;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 20px;
+      cursor: pointer;
+      color: #666;
+      font-weight: bold;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+    .tab:hover {
+      color: #667eea;
+    }
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .success {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #c3e6cb;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #f5c6cb;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+    .info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 2px solid #bee5eb;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐺 狼人杀</h1>
+    
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('login')">登录</div>
+      <div class="tab" onclick="showTab('register')">注册</div>
+    </div>
+    
+    <div id="loginTab" class="tab-content active">
+      <div class="form-group">
+        <label for="loginUsername">用户名：</label>
+        <input type="text" id="loginUsername" placeholder="请输入用户名">
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">密码：</label>
+        <input type="password" id="loginPassword" placeholder="请输入密码">
+      </div>
+      <button id="loginBtn" onclick="handleLogin()">登录</button>
+      <div id="loginResult"></div>
+    </div>
+    
+    <div id="registerTab" class="tab-content">
+      <div class="form-group">
+        <label for="regUsername">用户名：</label>
+        <input type="text" id="regUsername" placeholder="请输入用户名">
+      </div>
+      <div class="form-group">
+        <label for="regPassword">密码：</label>
+        <input type="password" id="regPassword" placeholder="请输入密码">
+      </div>
+      <div class="form-group">
+        <label for="regEmail">邮箱：</label>
+        <input type="email" id="regEmail" placeholder="请输入邮箱">
+      </div>
+      <button id="regBtn" onclick="handleRegister()">注册</button>
+      <div id="regResult"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    async function hashPassword(password) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(password);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const resultDiv = document.getElementById('loginResult');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      if (!username || !password) {
+        showResult('loginResult', 'error', '请输入用户名和密码');
+        return;
+      }
+      
+      loginBtn.disabled = true;
+      loginBtn.textContent = '登录中...';
+      
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('loginResult', 'success', `登录成功！<br>欢迎回来，${result.user.username}！<br><a href="/">进入游戏大厅</a>`);
+          localStorage.setItem('user', JSON.stringify(result.user));
+        } else {
+          showResult('loginResult', 'error', result.message || '登录失败，请检查用户名和密码');
+        }
+      } catch (error) {
+        showResult('loginResult', 'error', `登录出错：${error.message}`);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById('regUsername').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const email = document.getElementById('regEmail').value.trim();
+      const resultDiv = document.getElementById('regResult');
+      const regBtn = document.getElementById('regBtn');
+      
+      if (!username || !password || !email) {
+        showResult('regResult', 'error', '请填写所有字段');
+        return;
+      }
+      
+      regBtn.disabled = true;
+      regBtn.textContent = '注册中...';
+      
+      try {
+        const passwordHash = await hashPassword(password);
+        
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, passwordHash, email }),
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('regResult', 'success', `注册成功！<br>用户名：${result.user.username}<br>邮箱：${result.user.email}<br><a href="/">去登录</a>`);
+        } else {
+          showResult('regResult', 'error', result.message || '注册失败，请重试');
+        }
+      } catch (error) {
+        showResult('regResult', 'error', `注册出错：${error.message}`);
+      } finally {
+        regBtn.disabled = false;
+        regBtn.textContent = '注册';
+      }
+    }
+
+    function showResult(divId, type, message) {
+      const div = document.getElementById(divId);
+      div.className = type;
+      div.innerHTML = message;
+    }
+
+    function showTab(tabName) {
+      const loginTab = document.getElementById('loginTab');
+      const registerTab = document.getElementById('registerTab');
+      const tabs = document.querySelectorAll('.tab');
+      
+      tabs.forEach(tab => tab.classList.remove('active'));
+      
+      if (tabName === 'login') {
+        loginTab.classList.add('active');
+        tabs[0].classList.add('active');
+      } else {
+        registerTab.classList.add('active');
+        tabs[1].classList.add('active');
+      }
+    }
+
+    window.onload = function() {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        showResult('loginResult', 'info', `欢迎回来，${user.username}！<br><a href="/">进入游戏大厅</a>`);
+      }
+    };
+  </script>
+</body>
+</html>

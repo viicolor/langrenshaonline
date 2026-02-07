@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 深邃夜空主题 */
+    --background: 222 47% 8%;
+    --foreground: 45 30% 90%;
+
+    --card: 222 40% 12%;
+    --card-foreground: 45 30% 90%;
+
+    --popover: 222 40% 12%;
+    --popover-foreground: 45 30% 90%;
+
+    /* 金色/琥珀色 - 火光感 */
+    --primary: 38 92% 50%;
+    --primary-foreground: 222 47% 8%;
+
+    --secondary: 222 35% 18%;
+    --secondary-foreground: 45 30% 90%;
+
+    --muted: 222 30% 20%;
+    --muted-foreground: 220 15% 55%;
+
+    /* 深红血色强调 */
+    --accent: 0 72% 45%;
+    --accent-foreground: 45 30% 95%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 22%;
+    --input: 222 30% 18%;
+    --ring: 38 92% 50%;
+
+    --radius: 0.75rem;
+
+    /* 自定义狼人杀主题色 */
+    --wolf-red: 0 72% 35%;
+    --villager-blue: 210 60% 45%;
+    --seer-purple: 270 50% 45%;
+    --witch-green: 150 50% 35%;
+    --hunter-orange: 25 85% 50%;
+    --gold-glow: 38 92% 50%;
+    --moon-silver: 220 20% 75%;
+    --night-deep: 222 50% 6%;
+    --fire-orange: 25 95% 55%;
+
+    /* 渐变 */
+    --gradient-night: linear-gradient(180deg, hsl(222, 50%, 6%) 0%, hsl(222, 47%, 12%) 100%);
+    --gradient-gold: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(25, 95%, 55%) 100%);
+    --gradient-blood: linear-gradient(135deg, hsl(0, 72%, 35%) 0%, hsl(0, 60%, 25%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(222, 40%, 14%) 0%, hsl(222, 40%, 10%) 100%);
+
+    /* 阴影 */
+    --shadow-glow: 0 0 30px hsl(38 92% 50% / 0.3);
+    --shadow-card: 0 8px 32px hsl(222 50% 4% / 0.5);
+    --shadow-blood: 0 0 20px hsl(0 72% 35% / 0.4);
+
+    --sidebar-background: 222 40% 10%;
+    --sidebar-foreground: 45 30% 90%;
+    --sidebar-primary: 38 92% 50%;
+    --sidebar-primary-foreground: 222 47% 8%;
+    --sidebar-accent: 222 35% 18%;
+    --sidebar-accent-foreground: 45 30% 90%;
+    --sidebar-border: 222 30% 22%;
+    --sidebar-ring: 38 92% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', 'Noto Sans SC', serif;
+  }
+}
+
+@layer utilities {
+  .text-gradient-gold {
+    background: linear-gradient(135deg, hsl(38, 92%, 50%) 0%, hsl(25, 95%, 55%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-night {
+    background: linear-gradient(180deg, hsl(222, 50%, 6%) 0%, hsl(222, 47%, 12%) 100%);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 30px hsl(38 92% 50% / 0.3);
+  }
+
+  .glow-blood {
+    box-shadow: 0 0 20px hsl(0 72% 35% / 0.4);
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(38 92% 50% / 0) 0%,
+      hsl(38 92% 50% / 0.3) 50%,
+      hsl(38 92% 50% / 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+}
