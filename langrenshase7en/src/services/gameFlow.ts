@@ -60,7 +60,13 @@ export const gameFlowService = {
   },
 
   async unsubscribeFromGameFlowChanges(channel: any) {
-    supabase.removeChannel(channel);
+    try {
+      if (channel) {
+        await supabase.removeChannel(channel);
+      }
+    } catch (error) {
+      console.error('Unsubscribe from game flow changes error:', error);
+    }
   },
 
   async sendHeartbeat(gameId: string, playerId: string): Promise<void> {
