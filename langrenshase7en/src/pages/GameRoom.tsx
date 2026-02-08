@@ -896,6 +896,17 @@ const GameRoom = () => {
   const autoStartRef = useRef<NodeJS.Timeout | null>(null);
   const autoStartIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useEffect(() => {
+    console.log('[自动开始游戏] 检查条件:', {
+      roomStatus: room?.status,
+      isHost: currentPlayer?.is_host,
+      seatedCount,
+      minPlayers,
+      allSeatedReady,
+      seatedPlayers: seatedPlayers.map(p => ({ name: p.player_name, seat: p.seat_number, isReady: p.is_ready })),
+      isPending: startGameMutation.isPending,
+      triggered: autoStartTriggeredRef.current,
+    });
+    
     if (room?.status !== 'waiting') {
       autoStartTriggeredRef.current = false;
       setAutoStartCountdown(null);
@@ -911,6 +922,7 @@ const GameRoom = () => {
       setAutoStartCountdown(null);
       return;
     }
+    console.log('[自动开始游戏] 条件满足，开始倒计时');
     autoStartTriggeredRef.current = true;
     setAutoStartCountdown(5);
     autoStartIntervalRef.current = setInterval(() => {
