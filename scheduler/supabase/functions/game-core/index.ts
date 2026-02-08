@@ -462,7 +462,7 @@ serve(async (req: Request) => {
       });
     }
 
-    if (pathname === '/api/player-operate') {
+    if (pathname.includes('/api/player-operate')) {
       if (req.method !== 'POST') {
         return new Response('Method Not Allowed', {
           status: 405,
@@ -472,7 +472,7 @@ serve(async (req: Request) => {
       return await handlePlayerOperate(req);
     }
 
-    if (pathname === '/api/heartbeat') {
+    if (pathname.includes('/api/heartbeat')) {
       if (req.method !== 'POST') {
         return new Response('Method Not Allowed', {
           status: 405,
@@ -482,35 +482,25 @@ serve(async (req: Request) => {
       return await handlePlayerHeartbeat(req);
     }
 
-    if (pathname === '/api/advance-flow') {
+    if (pathname.includes('/api/advance-flow')) {
       if (req.method !== 'POST') {
         return new Response('Method Not Allowed', {
           status: 405,
           headers: corsHeaders,
         });
       }
-      const { gameId, triggerType } = await req.json();
-      await autoAdvanceFlow(gameId, triggerType);
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { 
-          'Content-Type': 'application/json',
-          ...corsHeaders,
-        },
-      });
+      return await handleAdvanceFlow(req);
     }
 
-    return new Response('Not Found', {
+    return new Response(JSON.stringify({ error: 'Not Found', path: pathname }), {
       status: 404,
-      headers: corsHeaders,
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   } catch (error: any) {
-    console.error('[Edge Function] 处理请求失败：', error);
-    return new Response(JSON.stringify({ success: false, msg: error.message }), {
+    console.error('[Edge Function] Error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { 
-        'Content-Type': 'application/json',
-        ...corsHeaders,
-      },
+      headers: { 'Content-Type': 'application/json', ...corsHeaders },
     });
   }
 });
