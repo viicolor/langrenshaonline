@@ -77,6 +77,17 @@ const VOTING_PK_VOTE_SECONDS = 30;
 export const gameService = {
   async createGameRecord(roomId: string, boardId?: string): Promise<string | null> {
     try {
+      const { data: firstNode, error: nodeError } = await supabase
+        .from('game_flow_nodes')
+        .select('id')
+        .eq('node_code', 'night_start')
+        .eq('is_delete', 0)
+        .maybeSingle();
+
+      if (nodeError) {
+        console.error('Get first flow node error:', nodeError);
+      }
+
       const { data: gameRecord, error } = await supabase
         .from('game_records')
         .insert({
@@ -87,6 +98,9 @@ export const gameService = {
           current_phase: null,
           night_step: 0,
           phase_ends_at: null,
+          current_node_id: firstNode?.id || null,
+          node_start_time: firstNode?.id ? new Date().toISOString() : null,
+          node_remaining_seconds: firstNode?.timeout_seconds || 0,
         })
         .select()
         .single();
