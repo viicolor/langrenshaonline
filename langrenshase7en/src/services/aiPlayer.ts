@@ -442,7 +442,15 @@ const aiPlayerService = {
         .single();
 
       if (error) throw error;
-      return player?.ai_config_id || null;
+      
+      const aiConfigId = player?.ai_config_id;
+      
+      if (!aiConfigId) {
+        console.log(`AI玩家 ${playerId} 没有配置AI配置ID，使用默认配置`);
+        return null;
+      }
+      
+      return aiConfigId;
     } catch (error) {
       console.error('Get AI player config error:', error);
       return null;
@@ -450,6 +458,11 @@ const aiPlayerService = {
   },
 
   async getAIConfig(aiConfigId: string): Promise<AIConfig | null> {
+    if (!aiConfigId) {
+      console.log('AI配置ID为空，使用默认配置');
+      return null;
+    }
+    
     try {
       const { data: config, error } = await supabase
         .from('ai_configs')
