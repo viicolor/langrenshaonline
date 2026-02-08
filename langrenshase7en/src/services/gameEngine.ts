@@ -7,6 +7,7 @@ import { WinConditionChecker } from './WinConditionChecker';
 import { NightActionResolver } from './NightActionResolver';
 import { aiGameIntegration } from './AIGameIntegration';
 import type { GameState, Player, NightAction } from '@/types/gameState';
+import { gameFlowService } from './gameFlow';
 
 export type GamePhase = 'waiting' | 'night' | 'day' | 'voting' | 'finished';
 
@@ -200,6 +201,14 @@ export const gameService = {
           : await gameConfigService.getPhaseDuration('standard_flow', 'night', 60);
       const now = new Date();
       const phaseEndsAt = new Date(now.getTime() + durationSeconds * 1000).toISOString();
+      
+      const { data: nightStartNode } = await supabase
+        .from('game_flow_nodes')
+        .select('id, timeout_seconds')
+        .eq('node_code', 'night_start')
+        .eq('is_delete', 0)
+        .maybeSingle();
+      
       const messageData: TablesInsert<'room_messages'> = {
         room_id: roomId,
         player_name: '系统',
@@ -219,6 +228,9 @@ export const gameService = {
           night_step: 0,
           phase_started_at: now.toISOString(),
           phase_ends_at: phaseEndsAt,
+          current_node_id: nightStartNode?.id || null,
+          node_start_time: nightStartNode?.id ? now.toISOString() : null,
+          node_remaining_seconds: nightStartNode?.timeout_seconds || durationSeconds,
         },
         undefined
       );
@@ -239,6 +251,14 @@ export const gameService = {
       const durationSeconds = SHERIFF_SIGNUP_SECONDS;
       const now = new Date();
       const phaseEndsAt = new Date(now.getTime() + durationSeconds * 1000).toISOString();
+      
+      const { data: sheriffCampaignNode } = await supabase
+        .from('game_flow_nodes')
+        .select('id, timeout_seconds')
+        .eq('node_code', 'sheriff_campaign')
+        .eq('is_delete', 0)
+        .maybeSingle();
+      
       const sheriffState: SheriffState = {
         stage: 'signup',
         signupSeats: [],
@@ -268,6 +288,9 @@ export const gameService = {
           phase_ends_at: phaseEndsAt,
           sheriff_state: sheriffState as unknown as Record<string, unknown>,
           sheriff_seat: null,
+          current_node_id: sheriffCampaignNode?.id || null,
+          node_start_time: sheriffCampaignNode?.id ? now.toISOString() : null,
+          node_remaining_seconds: sheriffCampaignNode?.timeout_seconds || durationSeconds,
         })
         .eq('id', gameRecordId);
       return { success: true, durationSeconds };
@@ -625,6 +648,14 @@ export const gameService = {
   async startDayPhase(roomId: string, gameRecordId: string, round: number): Promise<{ success: boolean; durationSeconds?: number }> {
     try {
       const now = new Date();
+      
+      const { data: dayStartNode } = await supabase
+        .from('game_flow_nodes')
+        .select('id, timeout_seconds')
+        .eq('node_code', 'day_start')
+        .eq('is_delete', 0)
+        .maybeSingle();
+      
       const messageData: TablesInsert<'room_messages'> = {
         room_id: roomId,
         player_name: '系统',
@@ -641,6 +672,9 @@ export const gameService = {
         current_phase: 'day',
         current_round: round,
         phase_started_at: now.toISOString(),
+        current_node_id: dayStartNode?.id || null,
+        node_start_time: dayStartNode?.id ? now.toISOString() : null,
+        node_remaining_seconds: dayStartNode?.timeout_seconds || durationSeconds,
       });
 
       // 生成AI玩家的白天发言
@@ -661,6 +695,14 @@ export const gameService = {
       const durationSeconds = await gameConfigService.getPhaseDuration('standard_flow', 'voting', 30);
       const now = new Date();
       const phaseEndsAt = new Date(now.getTime() + durationSeconds * 1000).toISOString();
+      
+      const { data: votingNode } = await supabase
+        .from('game_flow_nodes')
+        .select('id, timeout_seconds')
+        .eq('node_code', 'day_vote')
+        .eq('is_delete', 0)
+        .maybeSingle();
+      
       const messageData: TablesInsert<'room_messages'> = {
         room_id: roomId,
         player_name: '系统',
@@ -677,6 +719,9 @@ export const gameService = {
         current_round: round,
         phase_started_at: now.toISOString(),
         phase_ends_at: phaseEndsAt,
+        current_node_id: votingNode?.id || null,
+        node_start_time: votingNode?.id ? now.toISOString() : null,
+        node_remaining_seconds: votingNode?.timeout_seconds || durationSeconds,
       });
 
       // 生成AI玩家的投票

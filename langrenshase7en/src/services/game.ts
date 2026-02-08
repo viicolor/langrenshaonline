@@ -29,6 +29,17 @@ export interface GamePhaseState {
 export const gameService = {
   async createGameRecord(roomId: string, boardId?: string): Promise<string | null> {
     try {
+      const { data: firstNode, error: nodeError } = await supabase
+        .from('game_flow_nodes')
+        .select('id')
+        .eq('node_code', 'night_start')
+        .eq('is_delete', 0)
+        .maybeSingle();
+
+      if (nodeError) {
+        console.error('Get first flow node error:', nodeError);
+      }
+
       const { data: gameRecord, error } = await supabase
         .from('game_records')
         .insert({
@@ -40,6 +51,9 @@ export const gameService = {
           night_step: 0,
           phase_ends_at: null,
           phase_started_at: null,
+          current_node_id: firstNode?.id || null,
+          node_start_time: firstNode?.id ? new Date().toISOString() : null,
+          node_remaining_seconds: firstNode?.timeout_seconds || 0,
         })
         .select()
         .single();
@@ -121,6 +135,9 @@ export const gameService = {
       phase_started_at?: string;
       phase_ends_at?: string;
       night_step?: number;
+      current_node_id?: string;
+      node_start_time?: string;
+      node_remaining_seconds?: number;
     },
     onlyIfCurrentPhase?: string,
     onlyIfNightStep?: number

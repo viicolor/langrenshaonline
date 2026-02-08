@@ -60,19 +60,30 @@ const GameFlowPanel = ({ gameId, playerId, playerRole, enabled = true }: GameFlo
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-destructive">
             <AlertCircle className="w-5 h-5" />
-            流程加载失败
+            流程状态异常
           </CardTitle>
-          <CardDescription>{error.message}</CardDescription>
+          <CardDescription>
+            {error.message}
+            {error.message.includes('not found') && ' 游戏记录不存在'}
+            {error.message.includes('current_node_id') && ' 流程节点未初始化，请等待游戏开始'}
+          </CardDescription>
         </CardHeader>
       </Card>
     );
   }
 
-  if (!flowState || !currentNode) {
+  if (!flowState || !flowState.current_node_id) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <div className="text-muted-foreground">流程未启动</div>
+          <div className="text-center space-y-2">
+            <div className="text-muted-foreground">
+              {flowState ? '游戏尚未开始' : '流程未启动'}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              请等待房主开始游戏
+            </div>
+          </div>
         </CardContent>
       </Card>
     );
