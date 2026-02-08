@@ -907,11 +907,17 @@ const GameRoom = () => {
       triggered: autoStartTriggeredRef.current,
     });
     
-    if (room?.status !== 'waiting') {
+    if (room?.status === 'playing' || room?.status === 'finished') {
       autoStartTriggeredRef.current = false;
       setAutoStartCountdown(null);
       return;
     }
+    
+    if (!room?.status) {
+      setAutoStartCountdown(null);
+      return;
+    }
+    
     if (
       !currentPlayer?.is_host ||
       seatedCount < minPlayers ||
